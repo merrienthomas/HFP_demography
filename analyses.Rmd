@@ -1,0 +1,1446 @@
+---
+title: "data_analysis"
+author: "Thomas Merrien"
+date: "2023-05-22"
+output: html_document
+---
+
+This script need to be run after running the script in "main_script.R"
+
+```{r}
+library(ggfx)
+library(ggpubr)
+library(BAT)
+library(cowplot)
+library(phyr)
+```
+
+## Impact of mobility for resilience framework
+
+```{r}
+anova(lm(resistance_FSA~coord1dim+coord2dim+migration, data = dfanimal))
+anova(lm(resistance_FSA~migration, data = dfanimal))
+
+anova(lm(resilience~coord1dim+coord2dim+migration, data = dfanimal))
+anova(lm(resilience~migration, data = dfanimal))
+
+anova(lm(resonance~coord1dim+coord2dim+migration, data = dfanimal))
+anova(lm(resonance~migration, data = dfanimal))
+```
+
+
+
+## Correlation plots
+
+```{r}
+df <- rbind(df[df$Kingdom=="Plantae",],df[df$Kingdom=="Animalia",])
+
+df$order <- 1
+df$order[df$Kingdom=="Animalia"] <- 2
+df$kingdom2 <- df$Kingdom
+df$kingdom2[df$kingdom2=="Animalia"] <- "animal"
+df$kingdom2[df$kingdom2=="Plantae"] <- "plant"
+
+```
+
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = df,aes(coord1dim, resistance_FSA, color = Kingdom, order = rev(order))) + 
+  geom_point(show.legend = FALSE, size = 10, colour = "black", fill = NA, alpha = 0.1) +
+  geom_point(show.legend = FALSE, size = 9.5, aes(alpha = Kingdom)) +  labs(x = "Human presence axis", y = "Resistance") +
+  scale_alpha_manual(values = c("Animalia" = 0.5, "Plantae" = 0.2)) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position="none",
+        axis.title.x = element_text(color = "black", size = 0),
+        axis.title.y = element_text(color = "black", size = 15),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major = element_line(color = "grey75")) +
+  guides(colour = guide_legend(override.aes = list(size=2))) +
+  geom_smooth(method = "lm", size=7, alpha = 0.5, aes(linetype=kingdom2, color = kingdom2)) +
+  scale_color_manual(values = c("animal" = "#990000", "plant" = "#009999","Animalia" = "#f8756d", "Plantae" = "#1fb0b3"))
+
+p2 <- ggplot(data = df,aes(coord2dim, resistance_FSA, color = Kingdom, order = order)) + 
+  geom_point(show.legend = FALSE, size = 10, colour = "black", fill = NA, alpha = 0.1) +
+  geom_point(show.legend = FALSE, size = 9.5, aes(alpha = Kingdom)) +  labs(x = "Agricultural land use", y = "Resistance") +
+  scale_alpha_manual(values = c("Animalia" = 0.5, "Plantae" = 0.2)) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position="none",
+        axis.title.x = element_text(color = "black", size = 0),
+        axis.title.y = element_text(color = "black", size = 0),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major = element_line(color = "grey75")) +
+  guides(colour = guide_legend(override.aes = list(size=2))) +
+  geom_smooth(method = "lm", size=7, alpha = 0.5, aes(linetype=kingdom2, color = kingdom2)) +
+  scale_color_manual(values = c("animal" = "#990000", "plant" = "#009999","Animalia" = "#f8756d", "Plantae" = "#1fb0b3"))
+
+
+p3 <- ggplot(data = df,aes(coord1dim, resilience, color = Kingdom, order = order)) + 
+  geom_point(show.legend = FALSE, size = 10, colour = "black", fill = NA, alpha = 0.1) +
+  geom_point(show.legend = FALSE, size = 9.5, aes(alpha = Kingdom)) +  labs(y = "Speed of recovery", x = "Human presence axis") +
+  scale_alpha_manual(values = c("Animalia" = 0.5, "Plantae" = 0.2)) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position="none",
+        axis.title.x = element_text(color = "black", size = 0),
+        axis.title.y = element_text(color = "black", size = 15),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major = element_line(color = "grey75")) +
+  guides(colour = guide_legend(override.aes = list(size=2))) +
+  geom_smooth(method = "lm", size=7, alpha = 0.5, aes(linetype=kingdom2, color = kingdom2)) +
+  scale_color_manual(values = c("animal" = "#990000", "plant" = "#009999","Animalia" = "#f8756d", "Plantae" = "#1fb0b3")) +
+  scale_linetype_manual(values = c("animal" = 2, "plant" = 1))
+
+p4 <- ggplot(data = df,aes(coord2dim, resilience, color = Kingdom, order = order)) + 
+  geom_point(show.legend = FALSE, size = 10, colour = "black", fill = NA, alpha = 0.1) +
+  geom_point(show.legend = FALSE, size = 9.5, aes(alpha = Kingdom)) +  labs(y = "Speed of recovery", x = "Agricultural land use") +
+  scale_alpha_manual(values = c("Animalia" = 0.5, "Plantae" = 0.2)) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position="none",
+        axis.title.x = element_text(color = "black", size = 0),
+        axis.title.y = element_text(color = "black", size = 0),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major = element_line(color = "grey75")) +
+  guides(colour = guide_legend(override.aes = list(size=2))) +
+  geom_smooth(method = "lm", size=7, alpha = 0.5, aes(linetype=kingdom2, color = kingdom2)) +
+  scale_color_manual(values = c("animal" = "#990000", "plant" = "#009999","Animalia" = "#f8756d", "Plantae" = "#1fb0b3")) +
+  scale_linetype_manual(values = c("animal" = 2, "plant" = 2))
+
+
+p5 <- ggplot(data = df,aes(coord1dim, resonance, color = Kingdom, order = rev(order))) + 
+  geom_point(show.legend = FALSE, size = 10, colour = "black", fill = NA, alpha = 0.1) +
+  geom_point(show.legend = FALSE, size = 9.5, aes(alpha = Kingdom)) +  labs(y = "Resonance", x = "Human presence axis") +
+  scale_alpha_manual(values = c("Animalia" = 0.5, "Plantae" = 0.2)) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position="none",
+        axis.title.x = element_text(color = "black", size = 15),
+        axis.title.y = element_text(color = "black", size = 15),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major = element_line(color = "grey75")) +
+  guides(colour = guide_legend(override.aes = list(size=2))) +
+  geom_smooth(method = "lm", size=7, alpha = 0.5, aes(linetype=kingdom2, color = kingdom2)) +
+  scale_color_manual(values = c("animal" = "#990000", "plant" = "#009999","Animalia" = "#f8756d", "Plantae" = "#1fb0b3")) +
+  scale_linetype_manual(values = c("animal" = 2, "plant" = 1))
+
+p6 <- ggplot(data = df,aes(coord2dim, resonance, color = Kingdom, order = order)) + 
+  geom_point(show.legend = FALSE, size = 10, colour = "black", fill = NA, alpha = 0.1) +
+  geom_point(show.legend = FALSE, size = 9.5, aes(alpha = Kingdom)) +  labs(y = "Resonance", x = "Agricultural land use") +
+  scale_alpha_manual(values = c("Animalia" = 0.5, "Plantae" = 0.2)) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position="none",
+        axis.title.x = element_text(color = "black", size = 15),
+        axis.title.y = element_text(color = "black", size = 0),
+        axis.text = element_text(size = 12),
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major = element_line(color = "grey75")) +
+  guides(colour = guide_legend(override.aes = list(size=2))) +
+  geom_smooth(method = "lm", size=7, alpha = 0.5, aes(linetype=kingdom2, color = kingdom2)) +
+  scale_color_manual(values = c("animal" = "#990000", "plant" = "#009999","Animalia" = "#f8756d", "Plantae" = "#1fb0b3")) +
+  scale_linetype_manual(values = c("animal" = 2, "plant" = 1))
+
+
+```
+
+```{r, echo=FALSE}
+plot_grid(p1, p2,
+          p3, p4,
+          p5, p6,
+          ncol = 2,
+          labels = c("A", "B", "C", "D", "E", "F"))
+```
+
+
+## Resilience Framework analyses
+
+```{r, echo=FALSE}
+#Creation of the resilience dataframe
+resilience <- data.frame(PC1 = df$coord1dim,
+                         PC2 = df$coord2dim,
+                         Resistance = df$resistance_FSA,
+                         Speed_of_Recovery = df$resilience,
+                         Amplification = df$resonance)
+
+rownames(resilience) <- rownames(df)
+
+resilience <- drop_na(resilience)
+
+set.seed(123)
+
+#Creation of simulated data
+resilience_unif <- data.frame(PC1 = resilience$PC1,
+                              PC2 = resilience$PC2,
+                              Resistance = runif(length(resilience$PC1),
+                                                 min = min(resilience$Resistance, na.rm = TRUE),
+                                                 max = max(resilience$Resistance, na.rm = TRUE)),
+                              Speed_of_Recovery = runif(length(resilience$PC1),
+                                                 min = min(resilience$Speed_of_Recovery, na.rm = TRUE),
+                                                 max = max(resilience$Speed_of_Recovery, na.rm = TRUE)),
+                              Amplification = runif(length(resilience$PC1),
+                                                 min = min(resilience$Amplification, na.rm = TRUE),
+                                                 max = max(resilience$Amplification, na.rm = TRUE)))
+
+rownames(resilience_unif) <- rownames(resilience)
+
+
+resilience_norm <- data.frame(PC1 = resilience$PC1,
+                              PC2 = resilience$PC2,
+                              Resistance = rnorm(length(resilience$PC1),
+                                                 mean = mean(resilience$Resistance, na.rm = TRUE),
+                                                 sd = sd(resilience$Resistance, na.rm = TRUE)),
+                              Speed_of_Recovery = rnorm(length(resilience$PC1),
+                                                 mean = mean(resilience$Speed_of_Recovery, na.rm = TRUE),
+                                                 sd = sd(resilience$Speed_of_Recovery, na.rm = TRUE)),
+                              Amplification = rnorm(length(resilience$PC1),
+                                                 mean = mean(resilience$Amplification, na.rm = TRUE),
+                                                 sd = sd(resilience$Amplification, na.rm = TRUE)))
+
+rownames(resilience_norm) <- rownames(resilience)
+
+resilience_gamma <- data.frame(PC1 = resilience$PC1,
+                              PC2 = resilience$PC2,
+                              Resistance = rgamma(length(resilience$PC1),
+                                                 shape = (mean(resilience$Resistance, na.rm = TRUE)^2) / var(resilience$Resistance, na.rm = TRUE),
+                                                 scale = var(resilience$Resistance, na.rm = TRUE) / (mean(resilience$Resistance, na.rm = TRUE))^2),
+                              Speed_of_Recovery = rgamma(length(resilience$PC1),
+                                                 shape = (mean(resilience$Speed_of_Recovery, na.rm = TRUE)^2) / var(resilience$Speed_of_Recovery, na.rm = TRUE),
+                                                 scale = var(resilience$Speed_of_Recovery, na.rm = TRUE) / (mean(resilience$Speed_of_Recovery, na.rm = TRUE))^2),
+                              Amplification = rgamma(length(resilience$PC1),
+                                                 shape = (mean(resilience$Amplification, na.rm = TRUE)^2) / var(resilience$Amplification, na.rm = TRUE),
+                                                 scale = var(resilience$Amplification, na.rm = TRUE) / (mean(resilience$Amplification, na.rm = TRUE))^2))
+
+rownames(resilience_gamma) <- rownames(resilience)
+
+#Permutated data
+set.seed(456)
+resilience_perm <- data.frame(PC1 = resilience$PC1,
+                              PC2 = resilience$PC2,
+                              Resistance = sample(resilience$Resistance, length(resilience$PC1)),
+                              Speed_of_Recovery = sample(resilience$Speed_of_Recovery, length(resilience$PC1)),
+                              Amplification = sample(resilience$Amplification, length(resilience$PC1)))
+rownames(resilience_perm) <- rownames(resilience)
+```
+
+```{r, echo=FALSE}
+standardize <- function(list){
+  return((list - mean(list, na.rm=TRUE))/sd(list, na.rm=TRUE))
+}
+```
+
+
+```{r, echo = FALSE}
+#To use BAT we need to standardize data
+resilience.BAT <- resilience
+resilience.BAT$Resistance <- standardize(resilience.BAT$Resistance)
+resilience.BAT$Speed_of_Recovery <- standardize(resilience.BAT$Speed_of_Recovery)
+resilience.BAT$Amplification <- standardize(resilience.BAT$Amplification)
+
+resilience.BAT.hull <- data.frame(Resistance = drop_na(resilience.BAT)$Resistance, Speed_of_Recovery=drop_na(resilience.BAT)$Speed_of_Recovery, Amplification=drop_na(resilience.BAT)$Amplification)
+
+resilience.BAT.norm.hull <- data.frame(Resistance = (standardize(resilience_norm$Resistance)), Speed_of_Recovery=(standardize(resilience_norm$Speed_of_Recovery)), Amplification=(standardize(resilience_norm$Amplification)))
+
+resilience.BAT.unif.hull <- data.frame(Resistance = (standardize(resilience_unif$Resistance)), Speed_of_Recovery=(standardize(resilience_unif$Speed_of_Recovery)), Amplification=(standardize(resilience_unif$Amplification)))
+
+resilience.BAT.gamma.hull <- data.frame(Resistance = (standardize(resilience_gamma$Resistance)), Speed_of_Recovery=(standardize(resilience_gamma$Speed_of_Recovery)), Amplification=(standardize(resilience_gamma$Amplification)))
+
+resilience.BAT.perm.hull <- data.frame(Resistance = (standardize(resilience_perm$Resistance)), Speed_of_Recovery=(standardize(resilience_perm$Speed_of_Recovery)), Amplification=(standardize(resilience_perm$Amplification)))
+
+comm <- rep(1, dim(drop_na(resilience.BAT))[1])
+#rownames(comm) <- "Site 1"
+resilience.hull <- BAT::hull.build(comm = comm, trait = resilience.BAT.hull)
+resilience.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.hull)
+resilience.norm.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.norm.hull)
+resilience.unif.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.unif.hull)
+resilience.gamma.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.gamma.hull)
+resilience.perm.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.perm.hull)
+
+
+#BAT::hull.alpha(resilience.hull)
+#BAT::kernel.alpha(resilience.kernel)
+#BAT::kernel.dispersion(resilience.kernel)
+#BAT::kernel.evenness(resilience.kernel)
+
+```
+```{r, echo = FALSE}
+Resilience_FD <- data.frame(alpha = BAT::kernel.alpha(resilience.kernel),
+                            dispersion = BAT::kernel.dispersion(resilience.kernel),
+                            evenness = BAT::kernel.evenness(resilience.kernel))
+
+Resilience_norm_FD <- data.frame(alpha = BAT::kernel.alpha(resilience.norm.kernel),
+                            dispersion = BAT::kernel.dispersion(resilience.norm.kernel),
+                            evenness = BAT::kernel.evenness(resilience.norm.kernel))
+
+Resilience_unif_FD <- data.frame(alpha = BAT::kernel.alpha(resilience.unif.kernel),
+                            dispersion = BAT::kernel.dispersion(resilience.unif.kernel),
+                            evenness = BAT::kernel.evenness(resilience.unif.kernel))
+
+Resilience_gamma_FD <- data.frame(alpha = BAT::kernel.alpha(resilience.gamma.kernel),
+                            dispersion = BAT::kernel.dispersion(resilience.gamma.kernel),
+                            evenness = BAT::kernel.evenness(resilience.gamma.kernel))
+
+Resilience_perm_FD <- data.frame(alpha = BAT::kernel.alpha(resilience.perm.kernel),
+                            dispersion = BAT::kernel.dispersion(resilience.perm.kernel),
+                            evenness = BAT::kernel.evenness(resilience.perm.kernel))
+
+```
+
+```{r}
+#Create several simulated hull and store their values
+set.seed(789)
+for (i in 1:9){
+  resilience_unif <- data.frame(PC1 = resilience$PC1,
+                              PC2 = resilience$PC2,
+                              Resistance = runif(length(resilience$PC1),
+                                                 min = min(resilience$Resistance, na.rm = TRUE),
+                                                 max = max(resilience$Resistance, na.rm = TRUE)),
+                              Speed_of_Recovery = runif(length(resilience$PC1),
+                                                 min = min(resilience$Speed_of_Recovery, na.rm = TRUE),
+                                                 max = max(resilience$Speed_of_Recovery, na.rm = TRUE)),
+                              Amplification = runif(length(resilience$PC1),
+                                                 min = min(resilience$Amplification, na.rm = TRUE),
+                                                 max = max(resilience$Amplification, na.rm = TRUE)))
+
+  rownames(resilience_unif) <- rownames(resilience)
+  
+  
+  resilience_norm <- data.frame(PC1 = resilience$PC1,
+                                PC2 = resilience$PC2,
+                                Resistance = rnorm(length(resilience$PC1),
+                                                   mean = mean(resilience$Resistance, na.rm = TRUE),
+                                                   sd = sd(resilience$Resistance, na.rm = TRUE)),
+                                Speed_of_Recovery = rnorm(length(resilience$PC1),
+                                                   mean = mean(resilience$Speed_of_Recovery, na.rm = TRUE),
+                                                   sd = sd(resilience$Speed_of_Recovery, na.rm = TRUE)),
+                                Amplification = rnorm(length(resilience$PC1),
+                                                   mean = mean(resilience$Amplification, na.rm = TRUE),
+                                                   sd = sd(resilience$Amplification, na.rm = TRUE)))
+  
+  rownames(resilience_norm) <- rownames(resilience)
+  
+  resilience_gamma <- data.frame(PC1 = resilience$PC1,
+                                PC2 = resilience$PC2,
+                                Resistance = rgamma(length(resilience$PC1),
+                                                   shape = (mean(resilience$Resistance, na.rm = TRUE)^2) / var(resilience$Resistance, na.rm = TRUE),
+                                                   scale = var(resilience$Resistance, na.rm = TRUE) / (mean(resilience$Resistance, na.rm = TRUE))^2),
+                                Speed_of_Recovery = rgamma(length(resilience$PC1),
+                                                   shape = (mean(resilience$Speed_of_Recovery, na.rm = TRUE)^2) / var(resilience$Speed_of_Recovery, na.rm = TRUE),
+                                                   scale = var(resilience$Speed_of_Recovery, na.rm = TRUE) / (mean(resilience$Speed_of_Recovery, na.rm = TRUE))^2),
+                                Amplification = rgamma(length(resilience$PC1),
+                                                   shape = (mean(resilience$Amplification, na.rm = TRUE)^2) / var(resilience$Amplification, na.rm = TRUE),
+                                                   scale = var(resilience$Amplification, na.rm = TRUE) / (mean(resilience$Amplification, na.rm = TRUE)^2)))
+  
+  rownames(resilience_gamma) <- rownames(resilience)
+  
+  #Permutated data
+  set.seed(456)
+  resilience_perm <- data.frame(PC1 = resilience$PC1,
+                                PC2 = resilience$PC2,
+                                Resistance = sample(resilience$Resistance, length(resilience$PC1)),
+                                Speed_of_Recovery = sample(resilience$Speed_of_Recovery, length(resilience$PC1)),
+                                Amplification = sample(resilience$Amplification, length(resilience$PC1)))
+  rownames(resilience_perm) <- rownames(resilience)
+  
+  
+  resilience.BAT.norm.hull <- data.frame(Resistance = (standardize(resilience_norm$Resistance)), Speed_of_Recovery=(standardize(resilience_norm$Speed_of_Recovery)), Amplification=(standardize(resilience_norm$Amplification)))
+  
+  resilience.BAT.unif.hull <- data.frame(Resistance = (standardize(resilience_unif$Resistance)), Speed_of_Recovery=(standardize(resilience_unif$Speed_of_Recovery)), Amplification=(standardize(resilience_unif$Amplification)))
+  
+  resilience.BAT.gamma.hull <- data.frame(Resistance = (standardize(resilience_gamma$Resistance)), Speed_of_Recovery=(standardize(resilience_gamma$Speed_of_Recovery)), Amplification=(standardize(resilience_gamma$Amplification)))
+  
+  resilience.BAT.perm.hull <- data.frame(Resistance = (standardize(resilience_perm$Resistance)), Speed_of_Recovery=(standardize(resilience_perm$Speed_of_Recovery)), Amplification=(standardize(resilience_perm$Amplification)))
+  
+  resilience.norm.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.norm.hull)
+  resilience.unif.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.unif.hull)
+  resilience.gamma.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.gamma.hull)
+  resilience.perm.kernel <- BAT::kernel.build(comm = comm, trait = resilience.BAT.perm.hull)
+  
+  Resilience_norm_FD[i+1,] <- c(BAT::kernel.alpha(resilience.norm.kernel),
+                                BAT::kernel.dispersion(resilience.norm.kernel),
+                                BAT::kernel.evenness(resilience.norm.kernel))
+  
+  Resilience_unif_FD[i+1,] <- c(BAT::kernel.alpha(resilience.unif.kernel),
+                                BAT::kernel.dispersion(resilience.unif.kernel),
+                                BAT::kernel.evenness(resilience.unif.kernel))
+  
+  Resilience_gamma_FD[i+1,] <- c(BAT::kernel.alpha(resilience.gamma.kernel),
+                                BAT::kernel.dispersion(resilience.gamma.kernel),
+                                BAT::kernel.evenness(resilience.gamma.kernel))
+  
+  Resilience_perm_FD[i+1,] <- c(BAT::kernel.alpha(resilience.perm.kernel),
+                                BAT::kernel.dispersion(resilience.perm.kernel),
+                                BAT::kernel.evenness(resilience.perm.kernel))
+}
+```
+
+
+```{r, echo = FALSE}
+#Creation of 2 categories with same number of populations for highly disturbed and less disturbed habitats
+
+resilience$group <- "Disturbed"
+resilience$group[which(resilience$PC1<sort(resilience$PC1)[475])] <- "Pristine"
+
+resilience.BAT$group <- "Disturbed"
+resilience.BAT$group[which(resilience.BAT$PC1<sort(resilience.BAT$PC1)[475])] <- "Pristine"
+
+resilience.BAT$div <- as.factor(ceiling(resilience.BAT$PC1))
+
+for (i in 1:length(resilience.BAT$div)){
+  if (resilience.BAT$div[i]==-1){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==1){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==2){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==3){resilience.BAT$div[i]<- as.factor(4)}
+  if (resilience.BAT$div[i]==5){resilience.BAT$div[i]<- as.factor(4)}
+  if (resilience.BAT$div[i]==6){resilience.BAT$div[i]<- as.factor(4)}
+  if (resilience.BAT$div[i]==7){resilience.BAT$div[i]<- as.factor(8)}
+  if (resilience.BAT$div[i]==9){resilience.BAT$div[i]<- as.factor(8)}
+  if (resilience.BAT$div[i]==10){resilience.BAT$div[i]<- as.factor(8)}
+  if (resilience.BAT$div[i]==11){resilience.BAT$div[i]<- as.factor(12)}
+  if (resilience.BAT$div[i]==13){resilience.BAT$div[i]<- as.factor(12)}
+  if (resilience.BAT$div[i]==14){resilience.BAT$div[i]<- as.factor(12)}
+  if (resilience.BAT$div[i]==15){resilience.BAT$div[i]<- as.factor(16)}
+  if (resilience.BAT$div[i]==17){resilience.BAT$div[i]<- as.factor(16)}
+  if (resilience.BAT$div[i]==18){resilience.BAT$div[i]<- as.factor(16)}
+
+}
+```
+
+```{r}
+comm <- rbind(rep(0, length(resilience.BAT$div)),
+              rep(0, length(resilience.BAT$div)),
+              rep(0, length(resilience.BAT$div)),
+              rep(0, length(resilience.BAT$div)),
+              rep(0, length(resilience.BAT$div)))
+
+colnames(comm) <- paste("species", 1:length(resilience.BAT$div), sep="")
+rownames(comm) <- c("Site_0", "Site_4", "Site_8", "Site_12", "Site_16")
+
+for(i in 1:length(resilience.BAT$div)){
+  if (resilience.BAT$div[i]==-1 | resilience.BAT$div[i]==0 | resilience.BAT$div[i]==1 | resilience.BAT$div[i]==2){comm[1,i] <- 1}
+    if (resilience.BAT$div[i]==3 | resilience.BAT$div[i]==4 | resilience.BAT$div[i]==5 | resilience.BAT$div[i]==6){comm[2,i] <- 1}
+  if (resilience.BAT$div[i]==7 | resilience.BAT$div[i]==8 | resilience.BAT$div[i]==9 | resilience.BAT$div[i]==10){comm[3,i] <- 1}
+    if (resilience.BAT$div[i]==11 | resilience.BAT$div[i]==12 | resilience.BAT$div[i]==13 | resilience.BAT$div[i]==14){comm[4,i] <- 1}
+    if (resilience.BAT$div[i]==15 | resilience.BAT$div[i]==16 | resilience.BAT$div[i]==17 | resilience.BAT$div[i]==18){comm[5,i] <- 1}
+}
+
+trait <- data.frame(Resistance = resilience.BAT$Resistance, Speed_of_Recovery = resilience.BAT$Speed_of_Recovery, Amplification = resilience.BAT$Amplification)
+
+rownames(trait) <- colnames(comm)
+
+hv <- kernel.build(comm, trait, distance = "gower", abund = FALSE, cores = 6)
+
+plot(hv, colors = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"))
+```
+
+```{r}
+set.seed(456)
+for (i in 1:10){
+  rd1 <- sample(grep(TRUE, resilience.BAT$div==0),32)
+  rd2 <- sample(grep(TRUE, resilience.BAT$div==4),32)
+  rd3 <- sample(grep(TRUE, resilience.BAT$div==8),32)
+  rd4 <- sample(grep(TRUE, resilience.BAT$div==12),32)
+  rd5 <- grep(TRUE, resilience.BAT$div==16)
+  trait1 <- data.frame(Resistance = resilience.BAT$Resistance[c(rd1,rd2,rd3,rd4,rd5)],
+                       Speed_of_Recovery = resilience.BAT$Speed_of_Recovery[c(rd1,rd2,rd3,rd4,rd5)],
+                       Amplification = resilience.BAT$Amplification[c(rd1,rd2,rd3,rd4,rd5)])
+  comm1 <- rbind(rep(0, 32*5),
+              rep(0, 32*5),
+              rep(0, 32*5),
+              rep(0, 32*5),
+              rep(0, 32*5)) 
+  
+  colnames(comm1) <- paste("species", 1:(32*5), sep="")
+  rownames(comm1) <- c("Site_0", "Site_4", "Site_8", "Site_12", "Site_16")
+  
+  comm1[1,1:32]<-1
+  comm1[2,33:64]<-1
+  comm1[3,65:96]<-1
+  comm1[4,97:128]<-1
+  comm1[5,129:160]<-1
+  
+  rownames(trait1) <- colnames(comm1)
+  
+  assign(paste("hv",i, sep=""), kernel.build(comm1, trait1, distance = "gower", abund = FALSE, cores = 6))
+}
+
+```
+
+```{r}
+set.seed(123)
+even <- kernel.evenness(hv)
+even.k <- rbind(kernel.evenness(hv1),
+kernel.evenness(hv2),
+kernel.evenness(hv3),
+kernel.evenness(hv4),
+kernel.evenness(hv5),
+kernel.evenness(hv6),
+kernel.evenness(hv7),
+kernel.evenness(hv8),
+kernel.evenness(hv9),
+kernel.evenness(hv10))
+
+```
+
+```{r}
+set.seed(123)
+alpha <- kernel.alpha(hv)
+
+alpha.k <- rbind(kernel.alpha(hv1),
+kernel.alpha(hv2),
+kernel.alpha(hv3),
+kernel.alpha(hv4),
+kernel.alpha(hv5),
+kernel.alpha(hv6),
+kernel.alpha(hv7),
+kernel.alpha(hv8),
+kernel.alpha(hv9),
+kernel.alpha(hv10))
+```
+
+```{r}
+set.seed(123)
+disp <- kernel.dispersion(hv)
+
+disp.k <- rbind(kernel.dispersion(hv1),
+kernel.dispersion(hv2),
+kernel.dispersion(hv3),
+kernel.dispersion(hv4),
+kernel.dispersion(hv5),
+kernel.dispersion(hv6),
+kernel.dispersion(hv7),
+kernel.dispersion(hv8),
+kernel.dispersion(hv9),
+kernel.dispersion(hv10))
+```
+
+```{r}
+even.k.anova <- data.frame("evenness" = c(even.k), "site"=c(rep("Site_0",10),
+                                                         rep("Site_4",10),
+                                                         rep("Site_8",10),
+                                                         rep("Site_12",10),
+                                                         rep("Site_16",10))) 
+
+disp.k.anova <- data.frame("dispersion" = c(disp.k), "site"=c(rep("Site_0",10),
+                                                         rep("Site_4",10),
+                                                         rep("Site_8",10),
+                                                         rep("Site_12",10),
+                                                         rep("Site_16",10))) 
+
+alpha.k.anova <- data.frame("alpha" = c(alpha.k), "site"=c(rep("Site_0",10),
+                                                         rep("Site_4",10),
+                                                         rep("Site_8",10),
+                                                         rep("Site_12",10),
+                                                         rep("Site_16",10)))
+
+anova(lm(log(evenness)~site, data = even.k.anova))
+anova(lm(log(alpha)~site, data = alpha.k.anova))
+anova(lm(log(dispersion)~site, data = disp.k.anova))
+
+aov.even <- aov(log(evenness)~site, data = even.k.anova)
+aov.alpha <- aov(log(alpha)~site, data = alpha.k.anova)
+aov.disp <- aov(log(dispersion)~site, data = disp.k.anova)
+
+kruskal.test(alpha~site, data = alpha.k.anova)
+kruskal.test(dispersion~site, data = disp.k.anova)
+kruskal.test(evenness~site, data = even.k.anova)
+```
+
+```{r pairwise t-test}
+
+##check for normality of the data
+
+#for richness
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_0"]))
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_4"]))
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_8"])) #not normally distributed
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_12"]))
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_16"]))
+
+#for dispersion
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_0"]))
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_4"]))
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_8"])) 
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_12"]))
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_16"]))
+
+#for evenness
+with(even.k.anova, shapiro.test(evenness[site == "Site_0"]))
+with(even.k.anova, shapiro.test(evenness[site == "Site_4"]))
+with(even.k.anova, shapiro.test(evenness[site == "Site_8"])) #not normally distributed
+with(even.k.anova, shapiro.test(evenness[site == "Site_12"]))
+with(even.k.anova, shapiro.test(evenness[site == "Site_16"]))
+
+## check for homogeneity of the variance --> no need because we go for Wilcoxon test as some samples are not uniformly distributed
+
+## Wilcoxon test
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_0"], even.k.anova$evenness[even.k.anova$site == "Site_4"])
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_0"], even.k.anova$evenness[even.k.anova$site == "Site_8"])
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_0"], even.k.anova$evenness[even.k.anova$site == "Site_12"])
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_0"], even.k.anova$evenness[even.k.anova$site == "Site_16"])
+
+wilcox.test(alpha.k.anova$alpha[alpha.k.anova$site == "Site_0"], alpha.k.anova$alpha[alpha.k.anova$site == "Site_16"])
+
+wilcox.test(disp.k.anova$dispersion[disp.k.anova$site == "Site_0"], disp.k.anova$dispersion[disp.k.anova$site == "Site_16"])
+
+
+#ggplot(aes(x=site, y=alpha), data=alpha.k.anova) + geom_boxplot() + scale_x_discrete(limits = c("Site_0", "Site_4", "Site_8", "Site_12", "Site_16")) +
+#  stat_pvalue_manual(alpha.k.anova %>% pairwise.wilcox.test(alpha.k.anova$alpha, alpha.k.anova$site) %>% add_xy_position())
+
+ggboxplot(data=alpha.k.anova, x="site", y="alpha", color = "site") + stat_compare_means(comparisons = list(c("Site_0", "Site_4"), c("Site_0", "Site_8"), c("Site_0", "Site_12"), c("Site_0", "Site_16")), color = "grey")
+#c("Site_4", "Site_8"), c("Site_4", "Site_12"), c("Site_4", "Site_16"), c("Site_8", "Site_12"), c("Site_8", "Site_16"), c("Site_12", "Site_16")))
+
+ggboxplot(data=alpha.k.anova, x="site", y="alpha", color = "site") +
+  stat_compare_means(label.y = 140) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", ref.group = "Site_0", label.y = 125) + theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 12, face = "bold")) +
+  xlab("Human presence") + ylab("Kernel richness") +
+    scale_x_discrete(labels=c("Site_0" = "[-2 ; 2]", "Site_4" = "[3 ; 6]",
+                              "Site_8" = "[7 ; 10]", "Site_12" = "[11 ; 14]", "Site_16" = "[15 ; 18]"))
+
+ggboxplot(data=disp.k.anova, x="site", y="dispersion", color = "site") +
+  stat_compare_means(label.y = 5) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", ref.group = "Site_0", label.y = 4.5) + theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 12, face = "bold")) +
+  xlab("Human presence") + ylab("Kernel dispersion") +
+    scale_x_discrete(labels=c("Site_0" = "[-2 ; 2]", "Site_4" = "[3 ; 6]",
+                              "Site_8" = "[7 ; 10]", "Site_12" = "[11 ; 14]", "Site_16" = "[15 ; 18]"))
+
+ggboxplot(data=even.k.anova, x="site", y="evenness", color = "site") +
+  stat_compare_means(label.y = 0.51) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", ref.group = "Site_0", label.y = 0.47) + theme(legend.position="none", axis.title = element_text(size = 12, face = "bold"), axis.text.x = element_text()) +
+  xlab("Human presence") + ylab("Kernel evenness") +
+  scale_x_discrete(labels=c("Site_0" = "[-2 ; 2]", "Site_4" = "[3 ; 6]",
+                              "Site_8" = "[7 ; 10]", "Site_12" = "[11 ; 14]", "Site_16" = "[15 ; 18]"))
+
+```
+
+```{r plot pairwise}
+
+p1 <- ggboxplot(data=alpha.k.anova, x="site", y="alpha", color = "site") +
+  stat_compare_means(label.y = 140, size = 7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", ref.group = "Site_0", label.y = 125, size = 6) + 
+  theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 18, face = "bold"), axis.text.x = element_blank(),axis.text = element_text(size = 14)) +
+  xlab("") + ylab("Kernel richness") + 
+  ylim(c(0, 150))
+
+p2 <- ggboxplot(data=disp.k.anova, x="site", y="dispersion", color = "site") +
+  stat_compare_means(label.y = 5, size = 7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", ref.group = "Site_0", label.y = 4.5, size = 6) +
+  theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 18, face = "bold"), axis.text.x = element_blank(), axis.text = element_text(size = 14)) +
+  xlab("") + ylab("Kernel dispersion") +
+  ylim(c(0, 5.5))
+
+p3 <- ggboxplot(data=even.k.anova, x="site", y="evenness", color = "site") +
+  stat_compare_means(label.y = 0.53, size = 7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", ref.group = "Site_0", label.y = 0.47, size = 6) +
+  theme(legend.position="none", axis.title = element_text(size = 18, face = "bold"), axis.text = element_text(size = 14)) +
+  xlab("Human presence") + ylab("Kernel evenness") +
+  scale_x_discrete(labels=c("Site_0" = "[-2 ; 2]", "Site_4" = "[3 ; 6]",
+                              "Site_8" = "[7 ; 10]", "Site_12" = "[11 ; 14]", "Site_16" = "[15 ; 18]")) +
+  ylim(c(0, 0.58))
+
+plot_grid(p1, p2, 
+          p3,  ncol = 1, 
+          labels = c('a', 'b','c'), label_size = 20, label_colour = "black")
+```
+
+
+```{r, echo = false}
+#Convex hull analyses of observed data
+
+framework <- data.frame(resilience$PC1, 
+                        resilience$Resistance,
+                        resilience$Speed_of_Recovery,
+                        resilience$Amplification)
+
+pc <- (as.matrix(framework))
+
+hull <- convhulln(pc, "FA")
+obs.vol <- hull$vol
+
+```
+
+```{r, echo = FALSE}
+#Convex hull of simulated data
+
+#Uniform distribution ----------------------------------------------------------
+sim.uniform.vol <- rep(0,100)
+sim.uniform.overlap <- rep(0,100)
+set.seed(446)
+for(i in 1:100){
+  newpc1 <- resilience$PC1
+  #newpc2 <- matrix(runif(nrow(pc), min = min(pc[,2]), max = max(pc[,2])))
+  newpc3 <- matrix(runif(nrow(pc), min = min(resilience$Resistance), max = max(resilience$Resistance)), nrow(pc), 1)
+  newpc4 <- matrix(runif(nrow(pc), min = min(resilience$Speed_of_Recovery), max = max(resilience$Speed_of_Recovery)), nrow(pc), 1)
+  newpc5 <- matrix(runif(nrow(pc), min = min(resilience$Amplification), max = max(resilience$Amplification)), nrow(pc), 1)
+  new_pc_unif <- cbind(newpc1, newpc3, newpc4, newpc5)
+  hull_unif <- convhulln(new_pc_unif,"FA")
+  #uni_overlap <- geometry::intersectn(hull$hull, hull_unif$hull)
+  #sim.uniform.overlap[i] <- uni_overlap$ch$vol/(uni_overlap$ch1$vol)
+  sim.uniform.vol[i] <- hull_unif$vol
+}
+
+#Normal distribution -----------------------------------------------------------
+
+sim.norm.vol <- rep(0,100)
+sim.norm.overlap <- rep(0,100)
+set.seed(447)
+for(i in 1:100){
+  newpc1 <- resilience$PC1
+  #newpc2 <- matrix(runif(nrow(pc), min = min(pc[,2]), max = max(pc[,2])))
+  newpc3 <- matrix(rnorm(nrow(pc), mean = mean(resilience$Resistance), sd = sd(resilience$Resistance)), nrow(pc), 1)
+  newpc4 <- matrix(rnorm(nrow(pc), mean = mean(resilience$Speed_of_Recovery), sd = sd(resilience$Speed_of_Recovery)), nrow(pc), 1)
+  newpc5 <- matrix(rnorm(nrow(pc), mean = mean(resilience$Amplification), sd = sd(resilience$Amplification)), nrow(pc), 1)
+  new_pc_norm <- cbind(newpc1, newpc3, newpc4, newpc5)
+  hull_norm <- convhulln(new_pc_norm,"FA")
+  #norm_overlap <- geometry::intersectn(hull$hull, hull_norm$hull)
+  #sim.norm.overlap[i] <- norm_overlap$ch$vol/(norm_overlap$ch1$vol)
+  sim.norm.vol[i] <- hull_norm$vol
+}
+
+
+#Gamma distribution ------------------------------------------------------------
+
+sim.gamma.vol <- rep(0,100)
+sim.gamma.overlap <- rep(0,100)
+
+set.seed(447)
+for(i in 1:100){
+  newpc1 <- resilience$PC1
+  newpc2 <- matrix(rgamma(nrow(pc), shape = (mean(resilience$Resistance)^2)/sd(resilience$Resistance), scale = sd(resilience$Resistance)/((mean(resilience$Resistance))^2)), nrow(pc), 1)
+  newpc3 <- matrix(rgamma(nrow(pc), shape = (mean(resilience$Speed_of_Recovery)^2)/sd(resilience$Speed_of_Recovery), scale = sd(resilience$Speed_of_Recovery)/((mean(resilience$Speed_of_Recovery))^2)), nrow(pc), 1)
+  newpc4 <- matrix(rgamma(nrow(pc), shape = (mean(resilience$Amplification)^2)/sd(resilience$Amplification), scale = sd(resilience$Amplification)/((mean(resilience$Amplification))^2)), nrow(pc), 1)
+  new_pc_gamma <- cbind(newpc1, newpc2, newpc3, newpc4)
+  hull_gamma <- convhulln(new_pc_norm,"FA")
+  #gamma_overlap <- geometry::intersectn(hull$hull, hull_gamma$hull)
+  #sim.gamma.overlap[i]<- gamma_overlap$ch$vol/(gamma_overlap$ch1$vol)
+  sim.gamma.vol[i] <- hull_gamma$vol
+}
+
+```
+
+
+```{r, echo = FALSE}
+# Comparison of the different model -----------------------------------------------------------------
+
+test.unif <- as.randtest(obs=obs.vol,sim=sim.uniform.vol, alter="less")
+test.norm <- as.randtest(obs=obs.vol,sim=sim.norm.vol, alter="two-sided")
+test.gamma <- as.randtest(obs=obs.vol,sim=sim.gamma.vol, alter="greater")
+
+100 - mean(obs.vol/test.unif$expvar[2]) * 100
+100 - mean(obs.vol/sim.uniform.vol) * 100
+
+mean(obs.vol/sim.uniform.vol)
+
+100 - mean(obs.vol/test.norm$expvar[2])*100
+100 - mean(obs.vol/sim.norm.vol)*100
+
+mean(obs.vol/sim.norm.vol)
+
+100 - mean(obs.vol/test.gamma$expvar[2])*100
+100 - mean(obs.vol/sim.gamma.vol)*100
+
+mean(obs.vol/sim.gamma.vol)
+ 
+```
+
+```{r, echo=FALSE}
+# Overlap between volumes ----------------------------------------------------------------------------
+
+uni_overlap <- geometry::intersectn(hull$hull, hull_unif$hull)
+uni_overlap$ch$vol/(uni_overlap$ch1$vol)
+
+norm_overlap <- geometry::intersectn(hull$hull, hull_norm$hull)
+norm_overlap$ch$vol/(norm_overlap$ch1$vol)
+
+gamma_overlap <- geometry::intersectn(hull$hull, hull_gamma$hull)
+gamma_overlap$ch$vol/(gamma_overlap$ch1$vol)
+```
+
+## Short and long distances migration analyses
+
+```{r creation dataframe}
+anim_res <- data.frame(pop = rownames(dfanimal), Species = dfanimal$SpeciesAccepted, Speed_of_Recovery = dfanimal$resilience, Resistance = dfanimal$resistance_FSA, Amplification = dfanimal$resonance, Mobility = rep("Long", length(dfanimal$SpeciesAccepted)), Size = dfanimal$size, Lat = dfanimal$Lat, Lon = dfanimal$Lon, PC1 = dfanimal$coord1dim, PC2 = dfanimal$coord2dim)
+
+row.names(anim_res) <- anim_res$pop
+
+for (i in 1:length(anim_res$pop)){
+  anim_res$Mobility[i] <- animal_migration$Distance[animal_migration$SpeciesAccepted==anim_res$Species[i]]
+}
+
+```
+
+### Checking assumption for linear regressions
+
+I checked for spatial autocorrelation using Moran index and there are spatial autocorrelation
+
+There is also no need to correct for size
+
+```{r}
+
+speed_gam <- gam(Speed_of_Recovery ~ 1 + te(Lat,Lon, k = 10), family = tw(link="log"), data = anim_res)
+
+ampl_gam <- gam(Amplification ~ 1 + te(Lat,Lon, k=8), family = tw(link="log"), data = anim_res)
+
+res_gam <- gam(Resistance ~ 1 + te(Lat,Lon), family = gaussian, data = anim_res)
+
+
+plot(lm(res_gam$residuals ~ anim_res$PC1 + anim_res$Mobility))
+
+#anim_res$res_gam <- res_gam$residuals
+#anim_res$speed_gam <- speed_gam$residuals
+#anim_res$ampl_gam <- ampl_gam$residuals
+
+anim_res$res_gam <- residuals.gam(res_gam)
+anim_res$speed_gam <- residuals.gam(speed_gam)
+anim_res$ampl_gam <- residuals.gam(ampl_gam)
+```
+
+```{r animal tree}
+animal_tree <- read.newick(file = "Animal_timetree.nwk")
+
+#3 species are missing : Chelodina expansa / Hoplocephalus bungaroides / Bostrychia hagedash
+
+#According to OTL and other trees, Chelodina expansa is closer to Emydura macquarii. The median time that separate these species
+#is 76My while the mean time that separate Emydura macquarii and Podocnemis expansa is 144My
+animal_tree <- bind.tip(animal_tree, "Chelodina_expansa",
+                        where = which(animal_tree$tip.label == "Emydura_macquarii"))
+node1 <- mrca(animal_tree)["Chelodina_expansa", "Emydura_macquarii"]
+node2 <- mrca(animal_tree)["Podocnemis_expansa", "Emydura_macquarii"]
+
+ref_length <- animal_tree$edge.length[which(animal_tree$edge[,2] != node1 & animal_tree$edge[,1] == node2)]
+
+animal_tree$edge.length[which(animal_tree$edge[,1] == node1)] <- ref_length * (76 / 144)
+animal_tree$edge.length[which(animal_tree$edge[,2] == node1 & animal_tree$edge[,1] == node2)] <- ref_length * ((144 - 76) / 144)
+
+#According to OTL and other trees, Hoplocephalus bungaroides is closer to Cryptophis nigrescens. The median time that separate
+#these species is 29My while the mean time that separate Cryptophis nigrescens and Vipera aspis is 57.5My
+animal_tree <- bind.tip(animal_tree, "Hoplocephalus_bungaroides",
+                        where = which(animal_tree$tip.label == "Cryptophis_nigrescens"))
+node1 <- mrca(animal_tree)["Hoplocephalus_bungaroides", "Cryptophis_nigrescens"]
+node2 <- mrca(animal_tree)["Vipera_aspis", "Cryptophis_nigrescens"]
+
+ref_length <- animal_tree$edge.length[which(animal_tree$edge[,2] != node1 & animal_tree$edge[,1]  == node2)]
+
+animal_tree$edge.length[which(animal_tree$edge[,1] == node1)] <- ref_length * (29 / 57.5)
+animal_tree$edge.length[which(animal_tree$edge[,2] == node1 & animal_tree$edge[,1] == node2)] <- ref_length * ((57.5 - 29) / 57.5)
+
+#According to OTL and other trees, Bostrychia hagedash is closer to Fulmarus glacialis.But The median time that separate
+#these species is 74My while the mean time that separate Fulmarus glacialis and Gavia immer is 71My according to timetree
+#Finally we decided to apply a very similar time of divergence for all the three species
+animal_tree <- bind.tip(animal_tree, "Bostrychia_hagedash",
+                        where = which(animal_tree$tip.label == "Fulmarus_glacialis"))
+node1 <- mrca(animal_tree)["Bostrychia_hagedash", "Fulmarus_glacialis"]
+node2 <- mrca(animal_tree)["Gavia_immer", "Fulmarus_glacialis"]
+
+ref_length <- animal_tree$edge.length[which(animal_tree$edge[,2] != node1 & animal_tree$edge[,1] == node2)]
+
+animal_tree$edge.length[which(animal_tree$edge[,1] == node1)] <- ref_length * 0.99999
+animal_tree$edge.length[which(animal_tree$edge[,2] == node1 & animal_tree$edge[,1] == node2)] <- ref_length * 0.00001
+
+
+#Correction of eventual null edge length -------------------------------------------
+animal_tree$edge.length <- animal_tree$edge.length + 0.000001
+
+# Testing the basic properties of the tree -----------------------------------------
+animal_tree
+is.ultrametric(animal_tree)
+is.rooted(animal_tree)
+is.binary(animal_tree)
+
+# Making the tree ultrametric ------------------------------------------------------
+animal_tree <- force.ultrametric(animal_tree)
+
+# Harmonization of the node labels in the tree -------------------------------------
+edgenames <- animal_tree$edge
+animal_tree$node.label <- unique(edgenames[,1])
+
+##Harmonization of the names between the tree and the database
+animal_tree$tip.label <- gsub(" ", "_", animal_tree$tip.label)
+
+# Re-testing properties -----------------------------------------------------------
+animal_tree
+is.ultrametric(animal_tree)
+is.rooted(animal_tree)
+is.binary(animal_tree)
+name.check(animal_tree,dfanimal,data.names = dfanimal$SpeciesAccepted)
+
+
+```
+
+
+
+```{r MCMC GLMM}
+animal_pop_tree_bis <- read.tree(file="animal_pop_phylo.tre")
+animal_pop_tree_bis$node.label <- as.character(c(123:(123+110)))
+
+prior2 <- list(G=list(G1=list(V=3,nu=20), G2=list(V=1,nu=2)),R=list(V=1,nu=0.02))
+
+prior3 <- list(R = list(V=1, nu = 10^-6), G = list(G1 = list(V = 1, nu = 10^-6))) 
+
+anim_res$phylo <- anim_res$pop
+
+#animal_tree <- drop.tip(animal_tree, c("Didelphis_aurita", "Xenosaurus_platyceps"))
+
+#animal_pop_tree_bis <- drop.tip(animal_pop_tree_bis, name.check(animal_pop_tree_bis, anim_res)$tree_not_data)
+
+phyr_res <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_res <- MCMCglmm(res_gam ~ PC1 + PC2, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_speed <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_speed <- MCMCglmm(speed_gam ~ PC1 + PC2, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_ampl <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_ampl <- MCMCglmm(ampl_gam ~ PC1 + PC2, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_res_mob <- phyr::pglmm(res_gam ~ PC1 + PC2 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_res_mob <- MCMCglmm(res_gam ~ PC1 + PC2 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_speed_mob <- phyr::pglmm(speed_gam ~ PC1 + PC2 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_speed_mob <- MCMCglmm(speed_gam ~ PC1 + PC2 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_ampl_mob <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_ampl_mob <- MCMCglmm(ampl_gam ~ PC1 + PC2 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_res_mob_PC1 <- phyr::pglmm(res_gam ~ PC1 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+
+pglm_res_mob_PC1 <- MCMCglmm(res_gam ~ PC1 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_speed_mob_PC1 <- phyr::pglmm(speed_gam ~ PC1 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_speed_mob_PC1 <- MCMCglmm(speed_gam ~ PC1 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_ampl_mob_PC1 <- phyr::pglmm(ampl_gam ~ PC1 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_ampl_mob_PC1 <- MCMCglmm(ampl_gam ~ PC1 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_res_mob_PC2 <- phyr::pglmm(res_gam ~ PC2 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_res_mob_PC2 <- MCMCglmm(res_gam ~ PC2 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_speed_mob_PC2 <- phyr::pglmm(speed_gam ~ PC2 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_speed_mob_PC2 <- MCMCglmm(speed_gam ~ PC2 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_ampl_mob_PC2 <- phyr::pglmm(ampl_gam ~ PC2 + Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_ampl_mob_PC2 <- MCMCglmm(ampl_gam ~ PC2 + Mobility, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_res_PC1 <- phyr::pglmm(res_gam ~ PC1 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_res_PC1 <- MCMCglmm(res_gam ~ PC1, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_speed_PC1 <- phyr::pglmm(speed_gam ~ PC1 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_speed_PC1 <- MCMCglmm(speed_gam ~ PC1, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_ampl_PC1 <- phyr::pglmm(ampl_gam ~ PC1 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_ampl_PC1 <- MCMCglmm(ampl_gam ~ PC1, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_res_PC2 <- phyr::pglmm(res_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_res_PC2 <- MCMCglmm(res_gam ~ PC2, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_speed_PC2 <- phyr::pglmm(speed_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_speed_PC2 <- MCMCglmm(speed_gam ~ PC2, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_ampl_PC2 <- phyr::pglmm(ampl_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+pglm_ampl_PC2 <- MCMCglmm(ampl_gam ~ PC2, random=~phylo,
+                      ginverse = list(phylo = inverseA(animal_pop_tree_bis,nodes = "TIPS")$Ainv),
+                      data = anim_res,
+                      prior = prior3,
+                      nitt = 25000,
+                      burnin = 1000,
+                      thin = 10)
+
+phyr_res_mob_only <- phyr::pglmm(res_gam ~ Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_speed_mob_only <- phyr::pglmm(speed_gam ~ Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_ampl_mob_only <- phyr::pglmm(ampl_gam ~ Mobility + (1 | Species__), 
+                   data = anim_res, 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+```
+
+```{r table summary pglm}
+
+results_pglm_DIC <- data.frame(Amplification = c(pglm_ampl$DIC,
+                                                 pglm_ampl_mob$DIC,
+                                                 pglm_ampl_mob_PC1$DIC,
+                                                 pglm_ampl_mob_PC2$DIC,
+                                                 pglm_ampl_PC1$DIC,
+                                                 pglm_ampl_PC2$DIC),
+                               Speed_of_Recovery = c(pglm_speed$DIC,
+                                                     pglm_speed_mob$DIC,
+                                                     pglm_speed_mob_PC1$DIC,
+                                                     pglm_speed_mob_PC2$DIC,
+                                                     pglm_speed_PC1$DIC,
+                                                     pglm_speed_PC2$DIC),
+                               Resistance = c(pglm_res$DIC,
+                                              pglm_res_mob$DIC,
+                                              pglm_res_mob_PC1$DIC,
+                                              pglm_res_mob_PC2$DIC,
+                                              pglm_res_PC1$DIC,
+                                              pglm_res_PC2$DIC))
+
+
+results_pglm_mob <- data.frame(Amplification = c(NA,
+                                                 summary(pglm_ampl_mob)[5]$solutions[20],
+                                                 summary(pglm_ampl_mob_PC1)[5]$solutions[15],
+                                                 summary(pglm_ampl_mob_PC2)[5]$solutions[15],
+                                                 summary(pglm_ampl_PC1)[5]$solutions[15],
+                                                 summary(pglm_ampl_PC2)[5]$solutions[15]),
+                               Speed_of_Recovery = c(NA,
+                                                     summary(pglm_speed_mob)[5]$solutions[20],
+                                                     summary(pglm_speed_mob_PC1)[5]$solutions[15],
+                                                     summary(pglm_speed_mob_PC2)[5]$solutions[15],
+                                                     summary(pglm_speed_PC1)[5]$solutions[15],
+                                                     summary(pglm_speed_PC2)[5]$solutions[15]),
+                               Resistance = c(NA,
+                                              summary(pglm_res_mob)[5]$solutions[20],
+                                              summary(pglm_res_mob_PC1)[5]$solutions[15],
+                                              summary(pglm_res_mob_PC2)[5]$solutions[15],
+                                              summary(pglm_res_PC1)[5]$solutions[15],
+                                              summary(pglm_res_PC2)[5]$solutions[15]))
+
+```
+
+
+
+```{r model validation}
+
+xsim <- simulate(pglm_ampl_PC1)
+plot(anim_res$res_gam, anim_res$PC1)
+points(xsim, anim_res$PC1, col = "red")
+
+xsim_2 <- simulate(pglm_ampl_PC1, 1000) # 1000 represents the number of simulations, and for some reason needs to be higher than the default to work in this case
+par(mfrow=c(1,2))
+hist(apply(xsim_2, 2, mean), breaks = 30, xlab = ("mean trait value"), main = "Distribution of the mean value \n of the simulated data; \n in red mean value of the observation") # plot your simulation data
+abline(v = mean((anim_res$res_gam)), col = "red") # check to see whether the max value of your real data falls within this histogram.
+hist(apply(xsim_2, 2, max), breaks = 30,xlab = ("maximum trait value"), main = "Distribution of the maximum value \n of the simulated data; \n in red maximum value of the observation") # plot your simulation data
+abline(v = max((anim_res$res_gam)), col = "red") # check to see whether the max value of your real data falls within this histogram.
+
+
+```
+
+```{r}
+mod <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species), 
+                   data = anim_res, 
+                   cov_ranef = list(sp = animal_tree),
+                   family = "gaussian")
+```
+
+
+
+
+## Plant analyses
+
+```{r}
+plant_res <- data.frame(pop = rownames(dfplant), Species = dfplant$SpeciesAccepted, Speed_of_Recovery = dfplant$resilience, Resistance = dfplant$resistance_FSA, Amplification = dfplant$resonance, Size = dfplant$size, Lat = dfplant$Lat, Lon = dfplant$Lon, PC1 = dfplant$coord1dim, PC2 = dfplant$coord2dim)
+
+row.names(plant_res) <- plant_res$pop
+
+plant_tree <- read.tree(file = "Plant_Phylo.tre")
+```
+
+```{r}
+
+plant_res <- plant_res[!is.na(plant_res$Amplification) & !is.na(plant_res$Resistance),]
+
+speed_gam_plant <- gam(Speed_of_Recovery ~ log(Size) + te(Lat,Lon, k = 10), family = tw(link="log"), data = plant_res)
+
+ampl_gam_plant <- gam(Amplification ~ log(Size) + te(Lat,Lon, k=8), family = tw(link="log"), data = plant_res)
+
+res_gam_plant <- gam(Resistance ~ log(Size) + te(Lat,Lon), family = "gaussian", data = plant_res)
+
+
+plant_res$res_gam <- residuals.gam(res_gam_plant)
+plant_res$speed_gam <- residuals.gam(speed_gam_plant)
+plant_res$ampl_gam <- residuals.gam(ampl_gam_plant)
+
+#plant_res$res_gam <- res_gam_plant$residuals
+#plant_res$speed_gam <- speed_gam_plant$residuals
+#plant_res$ampl_gam <- ampl_gam_plant$residuals
+```
+
+
+
+```{r}
+plant_pop_tree_bis <- drop.tip(plant_pop_tree, name.check(plant_pop_tree, plant_res)$tree_not_data)
+plant_pop_tree_bis$node.label <- as.character(c(839:(839+836)))
+
+
+plants_names <- unique(plant_res$Species)
+plant_tree$tip.label <- gsub(" ", "_",plant_tree$tip.label)
+names(plants_names) <- plants_names
+
+
+phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res, 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res, 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res, 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+```
+
+## Analyses with bi-modal PC2
+
+#### PC2 < 0
+```{r PC2<0 animals}
+
+phyr_res_pc2neg <- phyr::pglmm(res_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2<=0,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_speed_pc2neg <- phyr::pglmm(speed_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2<=0,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_ampl_pc2neg <- phyr::pglmm(ampl_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2<=0,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+```
+
+```{r PC2<0 plants}
+phyr_speed_pc2neg <- phyr::pglmm(speed_gam ~ PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2<=0,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_res_pc2neg <- phyr::pglmm(res_gam ~ PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2<=0,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_ampl_pc2neg <- phyr::pglmm(ampl_gam ~ PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2<=0,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+```
+
+#### PC2 > 0
+
+```{r PC2>0 animals}
+
+phyr_res_pc2pos <- phyr::pglmm(res_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2>0,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_speed_pc2pos <- phyr::pglmm(speed_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2>0,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_ampl_pc2pos <- phyr::pglmm(ampl_gam ~ PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2>0,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+```
+
+
+```{r PC2>0 plants}
+phyr_speed_pc2pos <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2>0,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_res_pc2pos <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2>0,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_ampl_pc2pos <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2>0,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+```
+
+
+
+
+
+```{r PC2 plants}
+phyr_speed_pc2 <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res, 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_res_pc2 <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res, 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_ampl_pc2 <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res, 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+```
+
+
+
+
+## Analyses with bi-modal PC2
+
+#### PC2 < -4
+```{r PC2<-4 animals}
+
+phyr_res_pc2neg <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2<=-4,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_speed_pc2neg <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2<=-4,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_ampl_pc2neg <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2<=-4,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+```
+
+```{r PC2<-4 plants}
+phyr_speed_pc2neg <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2<=-4,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_res_pc2neg <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2<=-4,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_ampl_pc2neg <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2<=-4,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+```
+
+#### PC2 > -4
+
+```{r PC2>-4 animals}
+
+phyr_res_pc2pos <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2>-4,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_speed_pc2pos <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2>-4,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+
+phyr_ampl_pc2pos <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = anim_res[anim_res$PC2>-4,], 
+                   cov_ranef = list(Species = animal_tree),
+                   family = "gaussian")
+```
+
+
+```{r PC2>-4 plants}
+phyr_speed_pc2pos <- phyr::pglmm(speed_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2>-4,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_res_pc2pos <- phyr::pglmm(res_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2>-4,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+
+phyr_ampl_pc2pos <- phyr::pglmm(ampl_gam ~ PC1 + PC2 + (1 | Species__), 
+                   data = plant_res[plant_res$PC2>-4,], 
+                   cov_ranef = list(Species = drop.tip(plant_tree, name.check(plant_tree, plants_names)$tree_not_data)),
+                   family = "gaussian")
+```

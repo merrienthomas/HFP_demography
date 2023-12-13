@@ -1,0 +1,266 @@
+---
+title: "data_analysis"
+author: "Thomas Merrien"
+date: "2023-05-22"
+output: html_document
+---
+
+This script need to be run after running the script in "main_script.R"
+
+
+```{r}
+
+library(ggfx)
+library(ggpubr)
+library(BAT)
+library(cowplot)
+library(phyr)
+```
+
+
+```{r, echo = FALSE}
+#Creation of 2 categories with same number of populations for highly disturbed and less disturbed habitats
+
+resilience$group <- "Disturbed"
+resilience$group[which(resilience$PC1<sort(resilience$PC1)[475])] <- "Pristine"
+
+resilience.BAT$group <- "Disturbed"
+resilience.BAT$group[which(resilience.BAT$PC1<sort(resilience.BAT$PC1)[475])] <- "Pristine"
+
+resilience.BAT$div <- as.factor(ceiling(resilience.BAT$PC2))
+
+for (i in 1:length(resilience.BAT$div)){
+  if (resilience.BAT$div[i]==-7){resilience.BAT$div[i]<- as.factor(-4)}
+  if (resilience.BAT$div[i]==-6){resilience.BAT$div[i]<- as.factor(-4)}
+  if (resilience.BAT$div[i]==-5){resilience.BAT$div[i]<- as.factor(-4)}
+  if (resilience.BAT$div[i]==-4){resilience.BAT$div[i]<- as.factor(-4)}
+  if (resilience.BAT$div[i]==-3){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==-2){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==-1){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==0){resilience.BAT$div[i]<- as.factor(0)}
+  if (resilience.BAT$div[i]==1){resilience.BAT$div[i]<- as.factor(4)}
+  if (resilience.BAT$div[i]==2){resilience.BAT$div[i]<- as.factor(4)}
+  if (resilience.BAT$div[i]==3){resilience.BAT$div[i]<- as.factor(4)}
+  if (resilience.BAT$div[i]==4){resilience.BAT$div[i]<- as.factor(4)}
+
+}
+```
+
+```{r}
+comm <- rbind(rep(0, length(resilience.BAT$div)),
+              rep(0, length(resilience.BAT$div)),
+              rep(0, length(resilience.BAT$div)))
+
+colnames(comm) <- paste("species", 1:length(resilience.BAT$div), sep="")
+rownames(comm) <- c("Site_-4", "Site_0", "Site_4")
+
+for(i in 1:length(resilience.BAT$div)){
+  if (resilience.BAT$div[i]==-7 | resilience.BAT$div[i]==-6 | resilience.BAT$div[i]==-5 | resilience.BAT$div[i]==-4){comm[1,i] <- 1}
+    if (resilience.BAT$div[i]==-3 | resilience.BAT$div[i]==-2 | resilience.BAT$div[i]==-1 | resilience.BAT$div[i]==0){comm[2,i] <- 1}
+  if (resilience.BAT$div[i]==1 | resilience.BAT$div[i]==2 | resilience.BAT$div[i]==3 | resilience.BAT$div[i]==4){comm[3,i] <- 1}
+}
+
+trait <- data.frame(Resistance = resilience.BAT$Resistance, Speed_of_Recovery = resilience.BAT$Speed_of_Recovery, Amplification = resilience.BAT$Amplification)
+
+rownames(trait) <- colnames(comm)
+
+hv <- kernel.build(comm, trait, distance = "gower", abund = FALSE, cores = 6)
+
+plot(hv, colors = c("#F8766D", "#A3A500", "#00BF7D"))
+```
+
+```{r}
+set.seed(456)
+for (i in 1:10){
+  rd1 <- sample(grep(TRUE, resilience.BAT$div==-4),161)
+  rd2 <- sample(grep(TRUE, resilience.BAT$div==0),161)
+  rd3 <- sample(grep(TRUE, resilience.BAT$div==4),161)
+  trait1 <- data.frame(Resistance = resilience.BAT$Resistance[c(rd1,rd2,rd3)],
+                       Speed_of_Recovery = resilience.BAT$Speed_of_Recovery[c(rd1,rd2,rd3)],
+                       Amplification = resilience.BAT$Amplification[c(rd1,rd2,rd3)])
+  comm1 <- rbind(rep(0, 161*3),
+              rep(0, 161*3),
+              rep(0, 161*3)) 
+  
+  colnames(comm1) <- paste("species", 1:(161*3), sep="")
+  rownames(comm1) <- c("Site_-4", "Site_0", "Site_4")
+  
+  comm1[1,1:161]<-1
+  comm1[2,162:322]<-1
+  comm1[3,323:483]<-1
+
+  
+  rownames(trait1) <- colnames(comm1)
+  
+  assign(paste("hv",i, sep=""), kernel.build(comm1, trait1, distance = "gower", abund = FALSE, cores = 4))
+}
+
+```
+
+```{r}
+set.seed(123)
+even <- kernel.evenness(hv)
+even.k <- rbind(kernel.evenness(hv1),
+kernel.evenness(hv2),
+kernel.evenness(hv3),
+kernel.evenness(hv4),
+kernel.evenness(hv5),
+kernel.evenness(hv6),
+kernel.evenness(hv7),
+kernel.evenness(hv8),
+kernel.evenness(hv9),
+kernel.evenness(hv10))
+
+```
+
+```{r}
+set.seed(123)
+alpha <- kernel.alpha(hv)
+
+alpha.k <- rbind(kernel.alpha(hv1),
+kernel.alpha(hv2),
+kernel.alpha(hv3),
+kernel.alpha(hv4),
+kernel.alpha(hv5),
+kernel.alpha(hv6),
+kernel.alpha(hv7),
+kernel.alpha(hv8),
+kernel.alpha(hv9),
+kernel.alpha(hv10))
+```
+
+```{r}
+set.seed(123)
+disp <- kernel.dispersion(hv)
+
+disp.k <- rbind(kernel.dispersion(hv1),
+kernel.dispersion(hv2),
+kernel.dispersion(hv3),
+kernel.dispersion(hv4),
+kernel.dispersion(hv5),
+kernel.dispersion(hv6),
+kernel.dispersion(hv7),
+kernel.dispersion(hv8),
+kernel.dispersion(hv9),
+kernel.dispersion(hv10))
+```
+
+```{r}
+even.k.anova <- data.frame("evenness" = c(even.k), "site"=c(rep("Site_-4",10),
+                                                         rep("Site_0",10),
+                                                         rep("Site_4",10))) 
+
+disp.k.anova <- data.frame("dispersion" = c(disp.k), "site"=c(rep("Site_-4",10),
+                                                         rep("Site_0",10),
+                                                         rep("Site_4",10))) 
+
+alpha.k.anova <- data.frame("alpha" = c(alpha.k), "site"=c(rep("Site_-4",10),
+                                                         rep("Site_0",10),
+                                                         rep("Site_4",10)))
+
+anova(lm(log(evenness)~site, data = even.k.anova))
+anova(lm(log(alpha)~site, data = alpha.k.anova))
+anova(lm(log(dispersion)~site, data = disp.k.anova))
+
+aov.even <- aov(log(evenness)~site, data = even.k.anova)
+aov.alpha <- aov(log(alpha)~site, data = alpha.k.anova)
+aov.disp <- aov(log(dispersion)~site, data = disp.k.anova)
+
+kruskal.test(alpha~site, data = alpha.k.anova)
+kruskal.test(dispersion~site, data = disp.k.anova)
+kruskal.test(evenness~site, data = even.k.anova)
+```
+
+```{r pairwise t-test}
+
+##check for normality of the data
+
+#for richness
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_-4"]))
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_0"]))#not normally distributed
+with(alpha.k.anova, shapiro.test(alpha[site == "Site_4"])) 
+
+#for dispersion
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_-4"]))
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_0"]))
+with(disp.k.anova, shapiro.test(dispersion[site == "Site_4"])) 
+
+#for evenness
+with(even.k.anova, shapiro.test(evenness[site == "Site_-4"]))
+with(even.k.anova, shapiro.test(evenness[site == "Site_0"]))
+with(even.k.anova, shapiro.test(evenness[site == "Site_4"])) #not normally distributed
+
+
+## Wilcoxon test
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_-4"], even.k.anova$evenness[even.k.anova$site == "Site_0"])
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_-4"], even.k.anova$evenness[even.k.anova$site == "Site_4"])
+wilcox.test(even.k.anova$evenness[even.k.anova$site == "Site_0"], even.k.anova$evenness[even.k.anova$site == "Site_4"])
+
+
+wilcox.test(alpha.k.anova$alpha[alpha.k.anova$site == "Site_-4"], alpha.k.anova$alpha[alpha.k.anova$site == "Site_0"])
+wilcox.test(alpha.k.anova$alpha[alpha.k.anova$site == "Site_-4"], alpha.k.anova$alpha[alpha.k.anova$site == "Site_4"])
+wilcox.test(alpha.k.anova$alpha[alpha.k.anova$site == "Site_0"], alpha.k.anova$alpha[alpha.k.anova$site == "Site_4"])
+
+wilcox.test(disp.k.anova$dispersion[disp.k.anova$site == "Site_-4"], disp.k.anova$dispersion[disp.k.anova$site == "Site_0"])
+wilcox.test(disp.k.anova$dispersion[disp.k.anova$site == "Site_-4"], disp.k.anova$dispersion[disp.k.anova$site == "Site_4"])
+wilcox.test(disp.k.anova$dispersion[disp.k.anova$site == "Site_0"], disp.k.anova$dispersion[disp.k.anova$site == "Site_4"])
+
+
+#ggplot(aes(x=site, y=alpha), data=alpha.k.anova) + geom_boxplot() + scale_x_discrete(limits = c("Site_0", "Site_4", "Site_8", "Site_12", "Site_16")) +
+#  stat_pvalue_manual(alpha.k.anova %>% pairwise.wilcox.test(alpha.k.anova$alpha, alpha.k.anova$site) %>% add_xy_position())
+
+ggboxplot(data=alpha.k.anova, x="site", y="alpha", color = "site") + stat_compare_means(p.adjust.method = "bonferroni", comparisons = list(c("Site_-4", "Site_0"), c("Site_-4", "Site_4"), c("Site_0", "Site_4")), color = "grey")
+#c("Site_4", "Site_8"), c("Site_4", "Site_12"), c("Site_4", "Site_16"), c("Site_8", "Site_12"), c("Site_8", "Site_16"), c("Site_12", "Site_16")))
+
+ggboxplot(data=alpha.k.anova, x="site", y="alpha", color = "site") +
+  stat_compare_means(label.y = 140) +
+  stat_compare_means(p.adjust.method = "bonferroni",label = "p.signif", method = "wilcox.test", ref.group = "Site_-4", label.y = 125) + theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 12, face = "bold")) +
+  xlab("Agricultural land use") + ylab("Kernel richness") +
+    scale_x_discrete(labels=c("Site_-4" = "[-7 ; -4]", "Site_0" = "[-3 ; 0]",
+                              "Site_4" = "[1 ; 4]"))
+
+ggboxplot(data=disp.k.anova, x="site", y="dispersion", color = "site") +
+  stat_compare_means(label.y = 5) +
+  stat_compare_means(p.adjust.method = "bonferroni", label = "p.signif", method = "wilcox.test", ref.group = "Site_-4", label.y = 4.5) + theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 12, face = "bold")) +
+  xlab("Agricultural land use") + ylab("Kernel dispersion") +
+    scale_x_discrete(labels=c("Site_-4" = "[-7 ; -4]", "Site_0" = "[-3 ; 0]",
+                              "Site_4" = "[1 ; 4]"))
+
+ggboxplot(data=even.k.anova, x="site", y="evenness", color = "site") +
+  stat_compare_means(label.y = 0.51) +
+  stat_compare_means(p.adjust.method = "bonferroni", label = "p.signif", method = "wilcox.test", ref.group = "Site_-4", label.y = 0.47) + theme(legend.position="none", axis.title = element_text(size = 12, face = "bold"), axis.text.x = element_text()) +
+  xlab("Agricultural land use") + ylab("Kernel evenness") +
+  scale_x_discrete(labels=c("Site_-4" = "[-7 ; -4]", "Site_0" = "[-3 ; 0]",
+                              "Site_4" = "[1 ; 4]"))
+
+```
+
+```{r plot pairwise}
+
+p1 <- ggboxplot(data=alpha.k.anova, x="site", y="alpha", color = "site") +
+  stat_compare_means(label.y = 185, size = 7) +
+  stat_compare_means(p.adjust.method = "bonferroni", method = "wilcox.test", comparisons = list(c("Site_-4", "Site_0"), c("Site_-4", "Site_4"), c("Site_0", "Site_4")), size = 6) +
+  theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 18, face = "bold"), axis.text.x = element_blank(),axis.text = element_text(size = 14)) +
+  xlab("") + ylab("Kernel richness") + 
+  ylim(c(0, 190))
+
+p2 <- ggboxplot(data=disp.k.anova, x="site", y="dispersion", color = "site") +
+  stat_compare_means(label.y = 5.5, size = 7) +
+  stat_compare_means(p.adjust.method = "bonferroni", method = "wilcox.test", comparisons = list(c("Site_-4", "Site_0"), c("Site_-4", "Site_4"), c("Site_0", "Site_4")), size = 6) +
+  theme(legend.position="none") + theme(legend.position="none", axis.title = element_text(size = 18, face = "bold"), axis.text.x = element_blank(), axis.text = element_text(size = 14)) +
+  xlab("") + ylab("Kernel dispersion") +
+  ylim(c(2, 5.7))
+
+p3 <- ggboxplot(data=even.k.anova, x="site", y="evenness", color = "site") +
+  stat_compare_means(label.y = 0.22, size = 7) +
+  stat_compare_means(p.adjust.method = "bonferroni", method = "wilcox.test", comparisons = list(c("Site_-4", "Site_0"), c("Site_-4", "Site_4"), c("Site_0", "Site_4")), size = 6) +
+  theme(legend.position="none", axis.title = element_text(size = 18, face = "bold"), axis.text = element_text(size = 14)) +
+  xlab("Agricultural land use") + ylab("Kernel evenness") +
+  scale_x_discrete(labels=c("Site_-4" = "[-7 ; -4]", "Site_0" = "[-3 ; 0]",
+                              "Site_4" = "[1 ; 4]")) +
+  ylim(c(0, 0.23))
+
+plot_grid(p1, p2, 
+          p3,  ncol = 1, 
+          labels = c('a', 'b','c'), label_size = 20, label_colour = "black")
+```
